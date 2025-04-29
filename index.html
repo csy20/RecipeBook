@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Recipe Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc; /* Tailwind gray-100 */
+        }
+        #message-area {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            z-index: 100; /* Ensure it's above other elements */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            min-width: 250px; /* Ensure message is readable */
+            text-align: center;
+        }
+        #message-area.show {
+            opacity: 1;
+        }
+        textarea {
+            resize: vertical;
+        }
+        .recipe-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .recipe-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+        /* Initially hide the main app and show auth */
+        #recipe-app-container { display: none; }
+        #auth-container { display: block; }
+        /* Hide specific sections initially */
+        #recipe-details-section, #add-edit-recipe-section { display: none; }
+        /* Basic styles for auth forms */
+        .auth-form { max-width: 400px; margin: 2rem auto; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="message-area" class="bg-green-500 text-white"></div>
+
+    <div id="auth-container" class="container mx-auto p-4 md:p-8">
+        <h1 class="text-3xl font-bold text-center text-teal-600 mb-8">Welcome to Recipe Book</h1>
+
+        <div id="login-section" class="auth-form bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Login</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="login-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+                    <input type="text" id="login-username" name="username" required
+                           class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                </div>
+                <div class="mb-6">
+                    <label for="login-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                    <input type="password" id="login-password" name="password" required
+                           class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    <p class="text-xs text-red-600 mt-1">Warning: Password stored locally. Not secure for real applications.</p>
+                </div>
+                <div class="flex items-center justify-between mb-4">
+                    <button type="submit"
+                            class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50">
+                        Login
+                    </button>
+                </div>
+                 <p class="text-center text-sm text-gray-600">
+                    Don't have an account? <button type="button" id="show-register-btn" class="text-teal-500 hover:text-teal-700 font-semibold">Register here</button>
+                </p>
+            </form>
+        </div>
+
+        <div id="register-section" class="auth-form bg-white p-6 rounded-lg shadow-md" style="display: none;">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Register</h2>
+            <form id="register-form">
+                <div class="mb-4">
+                    <label for="register-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+                    <input type="text" id="register-username" name="username" required
+                           class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                </div>
+                <div class="mb-6">
+                    <label for="register-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                    <input type="password" id="register-password" name="password" required
+                           class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                     <p class="text-xs text-red-600 mt-1">Warning: Password stored locally. Not secure for real applications.</p>
+                </div>
+                <div class="flex items-center justify-between mb-4">
+                    <button type="submit"
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                        Register
+                    </button>
+                </div>
+                 <p class="text-center text-sm text-gray-600">
+                    Already have an account? <button type="button" id="show-login-btn" class="text-teal-500 hover:text-teal-700 font-semibold">Login here</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div id="recipe-app-container" class="container mx-auto p-4 md:p-8 max-w-6xl">
+        <header class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-4xl font-bold text-teal-600">My Recipe Book</h1>
+                <p class="text-gray-600 mt-1">Welcome, <span id="user-greeting" class="font-semibold">User</span>!</p>
+            </div>
+            <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow">
+                Logout
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div id="recipe-list-section" class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-700">My Recipes</h2>
+                    <button id="add-new-recipe-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow">
+                        Add New Recipe
+                    </button>
+                </div>
+                <div id="recipe-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <p id="no-recipes-message" class="text-gray-500 col-span-full text-center py-4">No recipes found. Add one to get started!</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1 space-y-8">
+                <div id="add-edit-recipe-section" class="bg-white p-6 rounded-lg shadow-md">
+                     <h2 id="form-title" class="text-2xl font-semibold text-gray-700 mb-6">Add New Recipe</h2>
+                    <form id="recipe-form">
+                        <input type="hidden" id="edit-recipe-id">
+                        <div class="mb-4">
+                            <label for="recipe-title" class="block text-gray-700 text-sm font-bold mb-2">Title:</label>
+                            <input type="text" id="recipe-title" name="title" required
+                                   class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                        </div>
+                        <div class="mb-4">
+                            <label for="recipe-ingredients" class="block text-gray-700 text-sm font-bold mb-2">Ingredients:</label>
+                            <textarea id="recipe-ingredients" name="ingredients" rows="4" required
+                                      class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                      placeholder="List each ingredient on a new line"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="recipe-instructions" class="block text-gray-700 text-sm font-bold mb-2">Instructions:</label>
+                            <textarea id="recipe-instructions" name="instructions" rows="6" required
+                                      class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                      placeholder="Step-by-step instructions"></textarea>
+                        </div>
+                        <div class="mb-6">
+                            <label for="recipe-image" class="block text-gray-700 text-sm font-bold mb-2">Image URL (Optional):</label>
+                            <input type="url" id="recipe-image" name="image"
+                                   class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                   placeholder="https://example.com/image.jpg">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <button type="submit" id="save-recipe-btn"
+                                    class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50">
+                                Save Recipe
+                            </button>
+                            <button type="button" id="cancel-edit-btn"
+                                    class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="recipe-details-section" class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-start mb-4">
+                         <h2 id="details-title" class="text-2xl font-semibold text-gray-700 break-words mr-2">Recipe Title</h2>
+                         <button id="close-details-btn" class="text-gray-500 hover:text-red-600 text-2xl font-bold leading-none" aria-label="Close details">&times;</button>
+                    </div>
+                    <img id="details-image" src="" alt="Recipe Image" class="w-full h-48 object-cover rounded-lg mb-4 bg-gray-200"
+                         onerror="this.onerror=null; this.src='https://placehold.co/600x400/e2e8f0/94a3b8?text=No+Image';">
+                    <h3 class="text-lg font-semibold text-gray-700 mt-4 mb-2">Ingredients:</h3>
+                    <p id="details-ingredients" class="text-gray-600 whitespace-pre-wrap"></p>
+                    <h3 class="text-lg font-semibold text-gray-700 mt-4 mb-2">Instructions:</h3>
+                    <p id="details-instructions" class="text-gray-600 whitespace-pre-wrap"></p>
+                    <div class="mt-6 flex justify-end space-x-3">
+                         <button id="edit-recipe-btn" data-id="" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow">
+                             Edit
+                         </button>
+                         <button id="delete-recipe-btn" data-id="" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ease-in-out shadow">
+                             Delete
+                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Constants and Global Variables ---
+        const DB_NAME = 'RecipeBookDB_Users'; // Changed DB name slightly
+        const RECIPE_STORE_NAME = 'recipes';
+        const USER_STORE_NAME = 'users';
+        const DB_VERSION = 2; // Incremented version for schema change
+        let db;
+        let currentLoggedInUser = null; // Store the username of the logged-in user
+
+        // --- DOM Elements ---
+        const authContainer = document.getElementById('auth-container');
+        const recipeAppContainer = document.getElementById('recipe-app-container');
+        const loginSection = document.getElementById('login-section');
+        const registerSection = document.getElementById('register-section');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const showRegisterBtn = document.getElementById('show-register-btn');
+        const showLoginBtn = document.getElementById('show-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userGreeting = document.getElementById('user-greeting');
+
+        const recipeList = document.getElementById('recipe-list');
+        const recipeForm = document.getElementById('recipe-form');
+        const addEditSection = document.getElementById('add-edit-recipe-section');
+        const detailsSection = document.getElementById('recipe-details-section');
+        const listSection = document.getElementById('recipe-list-section');
+        const formTitle = document.getElementById('form-title');
+        const editRecipeIdInput = document.getElementById('edit-recipe-id');
+        const addNewRecipeBtn = document.getElementById('add-new-recipe-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const closeDetailsBtn = document.getElementById('close-details-btn');
+        const noRecipesMessage = document.getElementById('no-recipes-message');
+        const messageArea = document.getElementById('message-area');
+        let messageTimeout;
+
+        // --- IndexedDB Setup ---
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) {
+                    showMessage("IndexedDB not supported.", true);
+                    return reject("IndexedDB not supported");
+                }
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = (event) => {
+                    console.error("Database error:", event.target.errorCode);
+                    showMessage("Error opening database.", true);
+                    reject("Database error: " + event.target.errorCode);
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log("Database opened successfully.");
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    const oldVersion = event.oldVersion;
+                    console.log(`Upgrading database from version ${oldVersion} to ${DB_VERSION}`);
+
+                    // Create 'recipes' store if it doesn't exist (or upgrade)
+                    if (!db.objectStoreNames.contains(RECIPE_STORE_NAME)) {
+                        const recipeStore = db.createObjectStore(RECIPE_STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                        recipeStore.createIndex('title', 'title', { unique: false });
+                        // *** Add userId index ***
+                        recipeStore.createIndex('userId', 'userId', { unique: false });
+                        console.log("Object store 'recipes' created.");
+                    } else if (oldVersion < 2) {
+                         // If upgrading from version 1, add the userId index
+                         const transaction = event.target.transaction;
+                         const recipeStore = transaction.objectStore(RECIPE_STORE_NAME);
+                         if (!recipeStore.indexNames.contains('userId')) {
+                              recipeStore.createIndex('userId', 'userId', { unique: false });
+                              console.log("Index 'userId' added to 'recipes' store.");
+                         }
+                    }
+
+
+                    // Create 'users' store if it doesn't exist
+                    if (!db.objectStoreNames.contains(USER_STORE_NAME)) {
+                        // Use username as the key path - ensures uniqueness
+                        const userStore = db.createObjectStore(USER_STORE_NAME, { keyPath: 'username' });
+                        // No need for extra indexes if username is the key
+                        console.log("Object store 'users' created.");
+                    }
+                     console.log("Database upgrade complete.");
+                };
+            });
+        }
+
+        // --- UI State Management ---
+        function showLoginView() {
+            authContainer.style.display = 'block';
+            recipeAppContainer.style.display = 'none';
+            loginSection.style.display = 'block';
+            registerSection.style.display = 'none';
+        }
+
+        function showRegisterView() {
+            authContainer.style.display = 'block';
+            recipeAppContainer.style.display = 'none';
+            loginSection.style.display = 'none';
+            registerSection.style.display = 'block';
+        }
+
+        function showAppView() {
+            authContainer.style.display = 'none';
+            recipeAppContainer.style.display = 'block';
+            userGreeting.textContent = currentLoggedInUser || 'User'; // Update greeting
+            loadAndDisplayRecipes(); // Load recipes for the logged-in user
+            showListView(); // Start with the list view within the app
+            adjustLayout(); // Adjust layout for the app view
+        }
+
+        function showMessage(message, isError = false) {
+            messageArea.textContent = message;
+            messageArea.className = `fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md shadow-md z-100 transition-opacity duration-300 ${isError ? 'bg-red-500' : 'bg-green-500'} text-white show`;
+            if (messageTimeout) clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                messageArea.classList.remove('show');
+            }, 3000);
+        }
+
+        // --- Authentication Logic ---
+        function registerUser(username, password) {
+            return new Promise((resolve, reject) => {
+                if (!db) return reject("Database not initialized");
+                const transaction = db.transaction([USER_STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(USER_STORE_NAME);
+                const user = { username, password }; // *** INSECURE: Storing plain password ***
+
+                // Check if username already exists (since it's the keyPath)
+                const checkRequest = store.get(username);
+                checkRequest.onsuccess = () => {
+                    if (checkRequest.result) {
+                        reject("Username already exists.");
+                    } else {
+                        // Username doesn't exist, proceed with adding
+                        const addRequest = store.add(user);
+                        addRequest.onsuccess = () => resolve();
+                        addRequest.onerror = (event) => reject("Error registering user: " + event.target.error);
+                    }
+                };
+                checkRequest.onerror = (event) => reject("Error checking username: " + event.target.error);
+            });
+        }
+
+        function loginUser(username, password) {
+            return new Promise((resolve, reject) => {
+                if (!db) return reject("Database not initialized");
+                const transaction = db.transaction([USER_STORE_NAME], 'readonly');
+                const store = transaction.objectStore(USER_STORE_NAME);
+                const request = store.get(username); // Get user by username (keyPath)
+
+                request.onsuccess = (event) => {
+                    const user = event.target.result;
+                    if (user) {
+                        // *** INSECURE: Direct password comparison ***
+                        if (user.password === password) {
+                            resolve(user.username); // Login successful, return username
+                        } else {
+                            reject("Incorrect password.");
+                        }
+                    } else {
+                        reject("Username not found.");
+                    }
+                };
+                request.onerror = (event) => reject("Error logging in: " + event.target.error);
+            });
+        }
+
+        function logoutUser() {
+            currentLoggedInUser = null;
+            localStorage.removeItem('loggedInUser'); // Clear session
+            showLoginView(); // Go back to login screen
+            showMessage("Logged out successfully.");
+        }
+
+        // --- Recipe CRUD Operations (Modified for User Association) ---
+
+        function addRecipe(recipeData) {
+            return new Promise((resolve, reject) => {
+                if (!db || !currentLoggedInUser) {
+                    return reject("Database not ready or user not logged in.");
+                }
+                // Add the userId to the recipe data
+                recipeData.userId = currentLoggedInUser;
+
+                const transaction = db.transaction([RECIPE_STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(RECIPE_STORE_NAME);
+                const request = store.add(recipeData);
+
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => {
+                    console.error("Error adding recipe:", event.target.error);
+                    showMessage("Error adding recipe.", true);
+                    reject("Error adding recipe: " + event.target.error);
+                };
+            });
+        }
+
+        function getAllRecipes() {
+            return new Promise((resolve, reject) => {
+                if (!db || !currentLoggedInUser) {
+                    // If called when no user is logged in, return empty array
+                    return resolve([]);
+                }
+                const transaction = db.transaction([RECIPE_STORE_NAME], 'readonly');
+                const store = transaction.objectStore(RECIPE_STORE_NAME);
+                // Use the 'userId' index to get only recipes for the current user
+                const index = store.index('userId');
+                const request = index.getAll(currentLoggedInUser); // Filter by logged-in user
+
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => {
+                    console.error("Error fetching recipes:", event.target.error);
+                     showMessage("Error fetching your recipes.", true);
+                    reject("Error fetching recipes: " + event.target.error);
+                };
+            });
+        }
+
+        function getRecipeById(id) {
+             return new Promise((resolve, reject) => {
+                if (!db || !currentLoggedInUser) {
+                    return reject("Database not ready or user not logged in.");
+                }
+                const transaction = db.transaction([RECIPE_STORE_NAME], 'readonly');
+                const store = transaction.objectStore(RECIPE_STORE_NAME);
+                const request = store.get(id);
+
+                request.onsuccess = (event) => {
+                    const recipe = event.target.result;
+                    if (recipe) {
+                        // *** Authorization Check ***: Ensure the fetched recipe belongs to the logged-in user
+                        if (recipe.userId === currentLoggedInUser) {
+                            resolve(recipe);
+                        } else {
+                             console.warn(`User ${currentLoggedInUser} attempted to access recipe ${id} owned by ${recipe.userId}`);
+                             showMessage("You do not have permission to view this recipe.", true);
+                             reject("Unauthorized access attempt");
+                        }
+                    } else {
+                        showMessage("Recipe not found.", true);
+                        reject("Recipe not found");
+                    }
+                };
+                request.onerror = (event) => {
+                    console.error("Error fetching recipe by ID:", event.target.error);
+                    showMessage("Error fetching recipe details.", true);
+                    reject("Error fetching recipe by ID: " + event.target.error);
+                };
+            });
+        }
+
+        function updateRecipe(recipeData) {
+            return new Promise(async (resolve, reject) => { // Make async to use await
+                if (!db || !currentLoggedInUser) {
+                    return reject("Database not ready or user not logged in.");
+                }
+                 // *** Authorization Check ***: First, verify the original recipe belongs to the user
+                 try {
+                    const originalRecipe = await getRecipeById(recipeData.id); // Reuse getRecipeById which includes auth check
+                     // If getRecipeById resolves, the user owns it. Now add userId back for the put operation.
+                     recipeData.userId = currentLoggedInUser;
+                 } catch (error) {
+                     // getRecipeById rejected (likely due to auth failure or not found)
+                     return reject("Cannot update recipe: " + error);
+                 }
+
+                const transaction = db.transaction([RECIPE_STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(RECIPE_STORE_NAME);
+                const request = store.put(recipeData); // Put will update based on id (keyPath)
+
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => {
+                    console.error("Error updating recipe:", event.target.error);
+                    showMessage("Error updating recipe.", true);
+                    reject("Error updating recipe: " + event.target.error);
+                };
+            });
+        }
+
+        function deleteRecipe(id) {
+             return new Promise(async (resolve, reject) => { // Make async to use await
+                if (!db || !currentLoggedInUser) {
+                    return reject("Database not ready or user not logged in.");
+                }
+
+                 // *** Authorization Check ***: Verify the recipe belongs to the user before deleting
+                 try {
+                    await getRecipeById(id); // Reuse getRecipeById which includes auth check
+                     // If getRecipeById resolves, the user owns it. Proceed with deletion.
+                 } catch (error) {
+                    // getRecipeById rejected (likely due to auth failure or not found)
+                     return reject("Cannot delete recipe: " + error);
+                 }
+
+                const transaction = db.transaction([RECIPE_STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(RECIPE_STORE_NAME);
+                const request = store.delete(id);
+
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => {
+                    console.error("Error deleting recipe:", event.target.error);
+                    showMessage("Error deleting recipe.", true);
+                    reject("Error deleting recipe: " + event.target.error);
+                };
+            });
+        }
+
+        // --- Rendering Functions (Mostly Unchanged, but called within user context) ---
+        function renderRecipeList(recipes) {
+            recipeList.innerHTML = '';
+            if (recipes.length === 0) {
+                noRecipesMessage.style.display = 'block';
+            } else {
+                noRecipesMessage.style.display = 'none';
+                recipes.forEach(recipe => {
+                    const card = document.createElement('div');
+                    card.className = 'recipe-card bg-white p-4 rounded-lg border border-gray-200 hover:shadow-lg cursor-pointer transition duration-200 ease-in-out';
+                    card.dataset.id = recipe.id;
+                    const imgSrc = recipe.image || 'https://placehold.co/300x200/e2e8f0/94a3b8?text=Recipe';
+                    const imgOnError = "this.onerror=null; this.src='https://placehold.co/300x200/e2e8f0/94a3b8?text=No+Image';";
+                    card.innerHTML = `
+                        <img src="${imgSrc}" alt="${recipe.title}" class="w-full h-32 object-cover rounded-md mb-3 bg-gray-200" onerror="${imgOnError}">
+                        <h3 class="text-lg font-semibold text-teal-700 mb-1 truncate">${recipe.title}</h3>
+                        <p class="text-gray-600 text-sm line-clamp-2">${recipe.ingredients.split('\n')[0] || 'No ingredients listed'}</p>
+                    `;
+                    card.addEventListener('click', () => viewRecipeDetails(recipe.id));
+                    recipeList.appendChild(card);
+                });
+            }
+        }
+
+        // --- UI Interaction Functions (Recipe App Part - Unchanged logic, but context matters) ---
+        function showAddEditForm(recipe = null) {
+            recipeForm.reset();
+            editRecipeIdInput.value = '';
+            if (recipe) {
+                formTitle.textContent = 'Edit Recipe';
+                editRecipeIdInput.value = recipe.id;
+                document.getElementById('recipe-title').value = recipe.title;
+                document.getElementById('recipe-ingredients').value = recipe.ingredients;
+                document.getElementById('recipe-instructions').value = recipe.instructions;
+                document.getElementById('recipe-image').value = recipe.image || '';
+            } else {
+                formTitle.textContent = 'Add New Recipe';
+            }
+            addEditSection.style.display = 'block';
+            detailsSection.style.display = 'none';
+            if (window.innerWidth < 1024) listSection.style.display = 'none';
+        }
+
+        function showDetailsView(recipe) {
+            document.getElementById('details-title').textContent = recipe.title;
+            document.getElementById('details-ingredients').textContent = recipe.ingredients;
+            document.getElementById('details-instructions').textContent = recipe.instructions;
+            const imgElement = document.getElementById('details-image');
+            imgElement.src = recipe.image || 'https://placehold.co/600x400/e2e8f0/94a3b8?text=No+Image';
+            imgElement.alt = recipe.title;
+            document.getElementById('edit-recipe-btn').dataset.id = recipe.id;
+            document.getElementById('delete-recipe-btn').dataset.id = recipe.id;
+            detailsSection.style.display = 'block';
+            addEditSection.style.display = 'none';
+            if (window.innerWidth < 1024) listSection.style.display = 'none';
+        }
+
+        function showListView() {
+            addEditSection.style.display = 'none';
+            detailsSection.style.display = 'none';
+            listSection.style.display = 'block';
+            adjustLayout(); // Re-adjust layout when returning to list
+        }
+
+        async function viewRecipeDetails(id) {
+             try {
+                const recipe = await getRecipeById(id); // This now includes auth check
+                showDetailsView(recipe);
+            } catch (error) {
+                console.error("Error viewing recipe details:", error);
+                // Error message handled in getRecipeById or showMessage
+                showListView(); // Go back to list if details fail to load (e.g., auth error)
+            }
+        }
+
+        // --- Event Handlers (Authentication) ---
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            if (!username || !password) {
+                 showMessage("Please enter username and password.", true);
+                 return;
+            }
+            try {
+                const loggedInUsername = await loginUser(username, password);
+                currentLoggedInUser = loggedInUsername;
+                localStorage.setItem('loggedInUser', currentLoggedInUser); // Store session
+                showMessage(`Welcome back, ${currentLoggedInUser}!`);
+                showAppView();
+            } catch (error) {
+                console.error("Login failed:", error);
+                showMessage("Login failed: " + error, true);
+            }
+        });
+
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value.trim();
+             if (!username || !password) {
+                 showMessage("Please enter username and password.", true);
+                 return;
+            }
+            // Basic validation (add more as needed)
+            if (password.length < 4) {
+                 showMessage("Password must be at least 4 characters long.", true);
+                 return;
+            }
+
+            try {
+                await registerUser(username, password);
+                showMessage("Registration successful! Please log in.");
+                showLoginView(); // Switch to login view after successful registration
+                registerForm.reset(); // Clear registration form
+            } catch (error) {
+                console.error("Registration failed:", error);
+                showMessage("Registration failed: " + error, true);
+            }
+        });
+
+        showRegisterBtn.addEventListener('click', showRegisterView);
+        showLoginBtn.addEventListener('click', showLoginView);
+        logoutBtn.addEventListener('click', logoutUser);
+
+        // --- Event Handlers (Recipe App) ---
+        recipeForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const title = document.getElementById('recipe-title').value.trim();
+            const ingredients = document.getElementById('recipe-ingredients').value.trim();
+            const instructions = document.getElementById('recipe-instructions').value.trim();
+            const image = document.getElementById('recipe-image').value.trim();
+            const id = parseInt(editRecipeIdInput.value);
+
+             if (!title || !ingredients || !instructions) {
+                 showMessage("Title, Ingredients, and Instructions are required.", true);
+                 return;
+             }
+
+            const recipeData = { title, ingredients, instructions, image };
+
+            try {
+                if (isNaN(id)) {
+                    await addRecipe(recipeData); // addRecipe now includes userId
+                    showMessage("Recipe added successfully!");
+                } else {
+                    recipeData.id = id;
+                    await updateRecipe(recipeData); // updateRecipe now includes auth check & userId
+                    showMessage("Recipe updated successfully!");
+                }
+                recipeForm.reset();
+                editRecipeIdInput.value = '';
+                await loadAndDisplayRecipes();
+                showListView();
+            } catch (error) {
+                console.error("Error saving recipe:", error);
+                // Error messages handled within CRUD functions or showMessage calls
+            }
+        });
+
+        addNewRecipeBtn.addEventListener('click', () => showAddEditForm());
+        cancelEditBtn.addEventListener('click', () => {
+             recipeForm.reset();
+             editRecipeIdInput.value = '';
+             showListView();
+        });
+        closeDetailsBtn.addEventListener('click', showListView);
+
+        document.getElementById('edit-recipe-btn').addEventListener('click', async (event) => {
+            const id = parseInt(event.target.dataset.id);
+            if (isNaN(id)) return;
+            try {
+                const recipe = await getRecipeById(id); // Auth check included
+                showAddEditForm(recipe);
+            } catch (error) {
+                console.error("Error fetching recipe for edit:", error);
+                 showListView(); // Go back to list if edit fails (e.g. auth error)
+            }
+        });
+
+        document.getElementById('delete-recipe-btn').addEventListener('click', async (event) => {
+            const id = parseInt(event.target.dataset.id);
+            if (isNaN(id)) return;
+            if (confirm("Are you sure you want to delete this recipe?")) {
+                try {
+                    await deleteRecipe(id); // Auth check included
+                    showMessage("Recipe deleted successfully!");
+                    await loadAndDisplayRecipes();
+                    showListView();
+                } catch (error) {
+                    console.error("Error deleting recipe:", error);
+                     // Error message handled in deleteRecipe
+                     showListView(); // Ensure user returns to list view even if delete fails
+                }
+            }
+        });
+
+        // --- Initialization & Layout ---
+        async function loadAndDisplayRecipes() {
+            // Only proceed if a user is logged in
+             if (!currentLoggedInUser) {
+                 renderRecipeList([]); // Render empty list if no user
+                 return;
+             }
+            try {
+                const recipes = await getAllRecipes(); // Fetches recipes for currentLoggedInUser
+                renderRecipeList(recipes);
+            } catch (error) {
+                console.error("Failed to load recipes:", error);
+            }
+        }
+
+        function adjustLayout() {
+             // Only adjust layout if the app container is visible
+             if (recipeAppContainer.style.display !== 'block') return;
+
+            if (window.innerWidth >= 1024) {
+                listSection.style.display = 'block'; // List always visible on large screens
+                 // If form or details are hidden, make sure they stay hidden
+                 if (addEditSection.style.display !== 'block') addEditSection.style.display = 'none';
+                 if (detailsSection.style.display !== 'block') detailsSection.style.display = 'none';
+
+            } else {
+                // On small screens, only show one section at a time (list, form, or details)
+                if (addEditSection.style.display === 'block' || detailsSection.style.display === 'block') {
+                     listSection.style.display = 'none';
+                } else {
+                     listSection.style.display = 'block'; // Default to showing list if others are hidden
+                }
+            }
+        }
+
+        // Check for existing session on page load
+        async function checkLoginStatus() {
+            const savedUser = localStorage.getItem('loggedInUser');
+            if (savedUser) {
+                // Verify user still exists in DB (optional but good practice)
+                 try {
+                     if (!db) await initDB(); // Ensure DB is ready
+                     const transaction = db.transaction([USER_STORE_NAME], 'readonly');
+                     const store = transaction.objectStore(USER_STORE_NAME);
+                     const request = store.get(savedUser);
+                     request.onsuccess = (event) => {
+                         if (event.target.result) {
+                             currentLoggedInUser = savedUser;
+                             showMessage(`Resumed session for ${currentLoggedInUser}.`);
+                             showAppView();
+                         } else {
+                             // User existed in localStorage but not DB, clear session
+                             console.warn("User from localStorage not found in DB. Clearing session.");
+                             logoutUser(); // This calls showLoginView
+                         }
+                     };
+                      request.onerror = (event) => {
+                           console.error("Error verifying user session:", event.target.error);
+                           logoutUser(); // Log out on error
+                      };
+                 } catch (error) {
+                     console.error("Error during session check:", error);
+                     logoutUser(); // Log out on error
+                 }
+
+            } else {
+                showLoginView(); // No saved user, show login
+            }
+        }
+
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initDB();
+                await checkLoginStatus(); // Check login status after DB init
+                // loadAndDisplayRecipes is called within showAppView if login is successful
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                showLoginView(); // Fallback to login view on major init error
+            }
+             window.addEventListener('resize', adjustLayout);
+        });
+
+    </script>
+
+</body>
+</html>
